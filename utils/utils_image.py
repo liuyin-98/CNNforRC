@@ -2,9 +2,10 @@ import os
 import math
 import random
 import numpy as np
+from functools import partial
 import torch
 import cv2
-from torchvision.utils import make_grid
+# from torchvision.utils import make_grid
 from datetime import datetime
 # import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
@@ -180,20 +181,17 @@ def mkdir_and_rename(path):
 
 
 # --------------------------------------------
-# get uint8 image of size HxWxn_channles (RGB)
+# get Y component of an input Image
 # --------------------------------------------
-def imread_uint(path, n_channels=3):
-    #  input: path
-    # output: HxWx3(RGB or GGG), or HxWx1 (G)
-    if n_channels == 1:
-        img = cv2.imread(path, 0)  # cv2.IMREAD_GRAYSCALE
-        img = np.expand_dims(img, axis=2)  # HxWx1
-    elif n_channels == 3:
-        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)  # BGR or G
-        if img.ndim == 2:
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)  # GGG
-        else:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # RGB
+bytes2num = partial(int.from_bytes, byteorder='little', signed=False)
+def imread_uint(path, width, height):
+    #  input: path, width, height
+    # output: np array of img
+    img = np.zeros([height, width], dtype=np.uint8)
+    with open(path, 'rb') as f:
+        for i in range(height):
+            for j in range(width):
+                img[i, j] = bytes2num(f.read(1))
     return img
 
 
